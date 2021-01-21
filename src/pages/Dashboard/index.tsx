@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Image, ScrollView } from 'react-native';
 
 import Icon from 'react-native-vector-icons/Feather';
 import { useNavigation } from '@react-navigation/native';
+import { forModalPresentationIOS } from '@react-navigation/stack/lib/typescript/src/TransitionConfigs/CardStyleInterpolators';
 import Logo from '../../assets/logo-header.png';
 import SearchInput from '../../components/SearchInput';
 
@@ -35,6 +36,7 @@ interface Food {
   price: number;
   thumbnail_url: string;
   formattedPrice: string;
+  category: number;
 }
 
 interface Category {
@@ -51,10 +53,11 @@ const Dashboard: React.FC = () => {
   >();
   const [searchValue, setSearchValue] = useState('');
 
-  const navigation = useNavigation();
+  const { navigate } = useNavigation();
 
   async function handleNavigate(id: number): Promise<void> {
     // Navigate do ProductDetails page
+    navigate('FoodDetails', { id });
   }
 
   useEffect(() => {
@@ -66,7 +69,7 @@ const Dashboard: React.FC = () => {
     }
 
     loadFoods();
-  }, [selectedCategory, searchValue]);
+  }, []);
 
   useEffect(() => {
     async function loadCategories(): Promise<void> {
@@ -79,9 +82,14 @@ const Dashboard: React.FC = () => {
     loadCategories();
   }, []);
 
-  function handleSelectCategory(id: number): void {
+  const handleSelectCategory = useCallback((id: number) => {
     // Select / deselect category
-  }
+    setSelectedCategory(id);
+
+    api.get('foods').then(response => {
+      response.data.filter((food: Food) => food.category === id);
+    });
+  }, []);
 
   return (
     <Container>
@@ -91,7 +99,7 @@ const Dashboard: React.FC = () => {
           name="log-out"
           size={24}
           color="#FFB84D"
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => navigate('Home')}
         />
       </Header>
       <FilterContainer>

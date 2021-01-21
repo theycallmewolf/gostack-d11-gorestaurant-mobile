@@ -25,12 +25,12 @@ import {
   FoodTitle,
   FoodDescription,
   FoodPricing,
-  AdditionalsContainer,
+  AdditionalContainer,
   Title,
   TotalContainer,
-  AdittionalItem,
-  AdittionalItemText,
-  AdittionalQuantity,
+  AdicionalItem,
+  AdicionalItemText,
+  AdicionalQuantity,
   PriceButtonContainer,
   TotalPrice,
   QuantityContainer,
@@ -74,29 +74,79 @@ const FoodDetails: React.FC = () => {
   useEffect(() => {
     async function loadFood(): Promise<void> {
       // Load a specific food with extras based on routeParams id
+      api.get(`foods/${routeParams.id}`).then(response => {
+        const selectedFood = response.data as Food;
+        setFood(selectedFood);
+        selectedFood.extras.map((extra: Extra) => {
+          // eslint-disable-next-line no-param-reassign
+          extra.quantity = 1;
+          return extra;
+        });
+        setExtras(selectedFood.extras);
+      });
+
+      const response = await api.get('favorites');
+      const favorites = response.data as Food[];
+      const checkIsFavorite = favorites.filter(
+        favorite => favorite.id === food.id,
+      );
+      if (checkIsFavorite.length === 1) {
+        setIsFavorite(true);
+      }
     }
 
     loadFood();
-  }, [routeParams]);
+  }, [food.id, routeParams]);
 
   function handleIncrementExtra(id: number): void {
     // Increment extra quantity
+    const extrasIncreased = extras.map(extra => {
+      if (extra.id === id) {
+        // eslint-disable-next-line no-param-reassign
+        extra.quantity += 1;
+      }
+      return extra;
+    });
+
+    setExtras(extrasIncreased);
   }
 
   function handleDecrementExtra(id: number): void {
     // Decrement extra quantity
+    const extrasDecreased = extras.map(extra => {
+      if (extra.id === id) {
+        if (extra.quantity === 0) {
+          // eslint-disable-next-line no-param-reassign
+          extra.quantity = 0;
+        } else {
+          // eslint-disable-next-line no-param-reassign
+          extra.quantity -= 1;
+        }
+      }
+      return extra;
+    });
+
+    setExtras(extrasDecreased);
   }
 
   function handleIncrementFood(): void {
     // Increment food quantity
+    setFoodQuantity(foodQuantity + 1);
   }
 
   function handleDecrementFood(): void {
     // Decrement food quantity
+    if (foodQuantity === 0) {
+      setFoodQuantity(foodQuantity);
+    } else {
+      setFoodQuantity(foodQuantity - 1);
+    }
   }
 
-  const toggleFavorite = useCallback(() => {
+  const toggleFavorite = useCallback(async () => {
     // Toggle if food is favorite or not
+    api.post('favorites', food);
+    setIsFavorite(!isFavorite);
   }, [isFavorite, food]);
 
   const cartTotal = useMemo(() => {
@@ -149,12 +199,12 @@ const FoodDetails: React.FC = () => {
             </FoodContent>
           </Food>
         </FoodsContainer>
-        <AdditionalsContainer>
+        <AdditionalContainer>
           <Title>Adicionais</Title>
           {extras.map(extra => (
-            <AdittionalItem key={extra.id}>
-              <AdittionalItemText>{extra.name}</AdittionalItemText>
-              <AdittionalQuantity>
+            <AdicionalItem key={extra.id}>
+              <AdicionalItemText>{extra.name}</AdicionalItemText>
+              <AdicionalQuantity>
                 <Icon
                   size={15}
                   color="#6C6C80"
@@ -162,9 +212,9 @@ const FoodDetails: React.FC = () => {
                   onPress={() => handleDecrementExtra(extra.id)}
                   testID={`decrement-extra-${extra.id}`}
                 />
-                <AdittionalItemText testID={`extra-quantity-${extra.id}`}>
+                <AdicionalItemText testID={`extra-quantity-${extra.id}`}>
                   {extra.quantity}
-                </AdittionalItemText>
+                </AdicionalItemText>
                 <Icon
                   size={15}
                   color="#6C6C80"
@@ -172,10 +222,10 @@ const FoodDetails: React.FC = () => {
                   onPress={() => handleIncrementExtra(extra.id)}
                   testID={`increment-extra-${extra.id}`}
                 />
-              </AdittionalQuantity>
-            </AdittionalItem>
+              </AdicionalQuantity>
+            </AdicionalItem>
           ))}
-        </AdditionalsContainer>
+        </AdditionalContainer>
         <TotalContainer>
           <Title>Total do pedido</Title>
           <PriceButtonContainer>
@@ -188,9 +238,9 @@ const FoodDetails: React.FC = () => {
                 onPress={handleDecrementFood}
                 testID="decrement-food"
               />
-              <AdittionalItemText testID="food-quantity">
+              <AdicionalItemText testID="food-quantity">
                 {foodQuantity}
-              </AdittionalItemText>
+              </AdicionalItemText>
               <Icon
                 size={15}
                 color="#6C6C80"
