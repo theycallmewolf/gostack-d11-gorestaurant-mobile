@@ -74,19 +74,18 @@ const FoodDetails: React.FC = () => {
   useEffect(() => {
     async function loadFood(): Promise<void> {
       // Load a specific food with extras based on routeParams id
-      api.get(`foods/${routeParams.id}`).then(response => {
-        const selectedFood = response.data as Food;
-        setFood(selectedFood);
-        selectedFood.extras.map((extra: Extra) => {
-          // eslint-disable-next-line no-param-reassign
-          extra.quantity = 1;
-          return extra;
-        });
-        setExtras(selectedFood.extras);
-      });
+      const responseFood = await api.get(`foods/${routeParams.id}`);
+      const selectedFood = responseFood.data as Food;
 
-      const response = await api.get('favorites');
-      const favorites = response.data as Food[];
+      const extrasWithQuantity = selectedFood.extras.map((extra: Extra) => ({
+        ...extra,
+        quantity: 0,
+      }));
+      setExtras(extrasWithQuantity);
+      setFood(selectedFood);
+
+      const responseFavorites = await api.get('favorites');
+      const favorites = responseFavorites.data as Food[];
       const checkIsFavorite = favorites.filter(
         favorite => favorite.id === food.id,
       );
@@ -100,30 +99,23 @@ const FoodDetails: React.FC = () => {
 
   function handleIncrementExtra(id: number): void {
     // Increment extra quantity
-    const extrasIncreased = extras.map(extra => {
+    const extrasIncreased: Extra[] = extras.map((extra: Extra) => {
       if (extra.id === id) {
-        // eslint-disable-next-line no-param-reassign
-        extra.quantity += 1;
+        return { ...extra, quantity: extra.quantity + 1 };
       }
-      return extra;
+      return { ...extra };
     });
 
     setExtras(extrasIncreased);
+    console.log({ extras });
   }
 
   function handleDecrementExtra(id: number): void {
-    // Decrement extra quantity
-    const extrasDecreased = extras.map(extra => {
-      if (extra.id === id) {
-        if (extra.quantity === 0) {
-          // eslint-disable-next-line no-param-reassign
-          extra.quantity = 0;
-        } else {
-          // eslint-disable-next-line no-param-reassign
-          extra.quantity -= 1;
-        }
+    const extrasDecreased: Extra[] = extras.map((extra: Extra) => {
+      if (extra.id === id && extra.quantity !== 0) {
+        return { ...extra, quantity: extra.quantity - 1 };
       }
-      return extra;
+      return { ...extra };
     });
 
     setExtras(extrasDecreased);
@@ -136,9 +128,7 @@ const FoodDetails: React.FC = () => {
 
   function handleDecrementFood(): void {
     // Decrement food quantity
-    if (foodQuantity === 0) {
-      setFoodQuantity(foodQuantity);
-    } else {
+    if (foodQuantity !== 0) {
       setFoodQuantity(foodQuantity - 1);
     }
   }
@@ -151,10 +141,18 @@ const FoodDetails: React.FC = () => {
 
   const cartTotal = useMemo(() => {
     // Calculate cartTotal
+    const extrasPrice = extras
+      .map(extra => extra.quantity * extra.value)
+      .reduce((acc, val) => acc + val, 0);
+
+    return formatValue(food.price * foodQuantity + extrasPrice);
   }, [extras, food, foodQuantity]);
 
   async function handleFinishOrder(): Promise<void> {
     // Finish the order and save on the API
+    const order = { food, extras };
+
+    api.post('orders', order);
   }
 
   // Calculate the correct icon name
