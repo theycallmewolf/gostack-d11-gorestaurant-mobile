@@ -146,17 +146,22 @@ const FoodDetails: React.FC = () => {
 
   const cartTotal = useMemo(() => {
     // Calculate cartTotal
-    const extrasPrice = extras
-      .map(extra => extra.quantity * extra.value)
-      .reduce((acc, val) => acc + val, 0);
+    // const extrasPrice = extras
+    //   .map(extra => extra.quantity * extra.value)
+    //   .reduce((acc, val) => acc + val, 0);
 
-    return formatValue(food.price * foodQuantity + extrasPrice);
+    const extrasTotal = extras.reduce((accumulator, extra) => {
+      return accumulator + extra.value * extra.quantity;
+    }, 0);
+
+    const foodTotal = food.price;
+
+    return formatValue((foodTotal + extrasTotal) * foodQuantity);
   }, [extras, food, foodQuantity]);
 
   async function handleFinishOrder(): Promise<void> {
     // Finish the order and save on the API
     const order = food;
-    console.log(order);
     api.post('orders', order);
   }
 
