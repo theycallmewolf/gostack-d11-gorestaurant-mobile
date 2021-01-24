@@ -1,3 +1,4 @@
+import { findAllByTestId } from '@testing-library/react-native';
 import React, { useEffect, useState } from 'react';
 import { Image } from 'react-native';
 
@@ -33,6 +34,15 @@ const Orders: React.FC = () => {
   useEffect(() => {
     async function loadOrders(): Promise<void> {
       // Load orders from API
+      const response = await api.get('orders');
+      const orderList: Food[] = response.data;
+
+      setOrders(
+        orderList.map(order => ({
+          ...order,
+          formattedPrice: formatValue(order.price),
+        })),
+      );
     }
 
     loadOrders();
