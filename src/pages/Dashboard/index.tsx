@@ -91,23 +91,10 @@ const Dashboard: React.FC = () => {
 
   const handleSelectCategory = useCallback(
     async (id: number) => {
-      // Select / deselect category
-      const response = await api.get('foods');
-
-      let foodList: Food[];
-      if (selectedCategory !== id) {
-        setSelectedCategory(id);
-        foodList = response.data.filter((food: Food) => food.category === id);
-      } else {
-        setSelectedCategory(undefined);
-        foodList = response.data;
-      }
-
-      const formattedFoods: Food[] = foodList.map((item: Food) => ({
-        ...item,
-        formattedPrice: formatValue(item.price),
-      }));
-      setFoods(formattedFoods);
+      // // Select / deselect category
+      selectedCategory === id
+        ? setSelectedCategory(undefined)
+        : setSelectedCategory(id);
     },
     [selectedCategory],
   );
