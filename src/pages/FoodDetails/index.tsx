@@ -148,9 +148,11 @@ const FoodDetails: React.FC = () => {
 
   function handleDecrementFood(): void {
     // Decrement food quantity
-    if (foodQuantity !== 0) {
-      setFoodQuantity(foodQuantity - 1);
-    }
+    // if (foodQuantity !== 0) {
+    //   setFoodQuantity(foodQuantity - 1);
+    // }
+    if (foodQuantity === 0) return;
+    setFoodQuantity(foodQuantity - 1);
   }
 
   const toggleFavorite = useCallback(async () => {
