@@ -11,6 +11,7 @@ import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import AppRoutes from 'src/routes/app.routes';
+import { findAllByTestId } from '@testing-library/react-native';
 import formatValue from '../../utils/formatValue';
 
 import api from '../../services/api';
@@ -121,14 +122,23 @@ const FoodDetails: React.FC = () => {
   }
 
   function handleDecrementExtra(id: number): void {
-    const extrasDecreased: Extra[] = extras.map((extra: Extra) => {
-      if (extra.id === id && extra.quantity !== 0) {
-        return { ...extra, quantity: extra.quantity - 1 };
-      }
-      return { ...extra };
-    });
+    // const extrasDecreased: Extra[] = extras.map((extra: Extra) => {
+    //   if (extra.id === id && extra.quantity !== 0) {
+    //     return { ...extra, quantity: extra.quantity - 1 };
+    //   }
+    //   return { ...extra };
+    // });
 
-    setExtras(extrasDecreased);
+    const findExtra = extras.find(extra => extra.id === id);
+
+    if (!findExtra) return;
+    if (findExtra.quantity === 0) return;
+
+    setExtras(
+      extras.map(extra =>
+        extra.id === id ? { ...extra, quantity: extra.quantity - 1 } : extra,
+      ),
+    );
   }
 
   function handleIncrementFood(): void {
