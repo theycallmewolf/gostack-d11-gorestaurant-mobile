@@ -77,23 +77,18 @@ const FoodDetails: React.FC = () => {
   useEffect(() => {
     async function loadFood(): Promise<void> {
       // Load a specific food with extras based on routeParams id
-      const responseFood = await api.get(`foods/${routeParams.id}`);
-      const selectedFood = responseFood.data as Food;
-      const extrasWithQuantity = selectedFood.extras.map((extra: Extra) => ({
-        ...extra,
-        quantity: 0,
-      }));
-      setExtras(extrasWithQuantity);
-      setFood(selectedFood);
+      const response = await api.get(`foods/${routeParams.id}`);
+      setFood({
+        ...response.data,
+        formattedPrice: formatValue(response.data.price),
+      });
 
-      const responseFavorites = await api.get('favorites');
-      const favorites = responseFavorites.data as Food[];
-      const checkIsFavorite = favorites.filter(
-        favorite => favorite.id === food.id,
+      setExtras(
+        response.data.extras.map((extra: Omit<Extra, 'quantity'>) => ({
+          ...extra,
+          quantity: 0,
+        })),
       );
-      if (checkIsFavorite.length === 1) {
-        setIsFavorite(true);
-      }
     }
 
     loadFood();
