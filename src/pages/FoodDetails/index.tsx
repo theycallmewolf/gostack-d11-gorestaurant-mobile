@@ -10,6 +10,7 @@ import { Image } from 'react-native';
 import Icon from 'react-native-vector-icons/Feather';
 import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import AppRoutes from 'src/routes/app.routes';
 import formatValue from '../../utils/formatValue';
 
 import api from '../../services/api';
@@ -58,6 +59,8 @@ interface Food {
   image_url: string;
   formattedPrice: string;
   extras: Extra[];
+  category: number;
+  thumbnail_url: string;
 }
 
 const FoodDetails: React.FC = () => {
@@ -76,7 +79,6 @@ const FoodDetails: React.FC = () => {
       // Load a specific food with extras based on routeParams id
       const responseFood = await api.get(`foods/${routeParams.id}`);
       const selectedFood = responseFood.data as Food;
-
       const extrasWithQuantity = selectedFood.extras.map((extra: Extra) => ({
         ...extra,
         quantity: 0,
@@ -107,7 +109,6 @@ const FoodDetails: React.FC = () => {
     });
 
     setExtras(extrasIncreased);
-    console.log({ extras });
   }
 
   function handleDecrementExtra(id: number): void {
@@ -135,7 +136,16 @@ const FoodDetails: React.FC = () => {
 
   const toggleFavorite = useCallback(async () => {
     // Toggle if food is favorite or not
-    api.post('favorites', food);
+
+    const response = await api.get('favorites');
+    const favorites: Food[] = response.data;
+
+    const updatedFavorites = favorites.filter(
+      favorite => favorite.id !== food.id,
+    );
+
+    await api.post('favorites', updatedFavorites);
+
     setIsFavorite(!isFavorite);
   }, [isFavorite, food]);
 
@@ -150,8 +160,8 @@ const FoodDetails: React.FC = () => {
 
   async function handleFinishOrder(): Promise<void> {
     // Finish the order and save on the API
-    const order = { food, extras };
-
+    const order = food;
+    console.log(order);
     api.post('orders', order);
   }
 

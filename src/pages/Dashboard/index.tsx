@@ -57,15 +57,19 @@ const Dashboard: React.FC = () => {
 
   async function handleNavigate(id: number): Promise<void> {
     // Navigate do ProductDetails page
-    navigate('FoodDetails', { id });
+    navigate('FoodDetails', { id, categories });
   }
 
   useEffect(() => {
     async function loadFoods(): Promise<void> {
       // Load Foods from API
-      api.get('foods').then(response => {
-        setFoods(response.data);
-      });
+      const response = await api.get('foods');
+      const foodList = response.data;
+      const formattedFoods: Food[] = foodList.map((item: Food) => ({
+        ...item,
+        formattedPrice: formatValue(item.price),
+      }));
+      setFoods(formattedFoods);
     }
 
     loadFoods();
@@ -74,22 +78,35 @@ const Dashboard: React.FC = () => {
   useEffect(() => {
     async function loadCategories(): Promise<void> {
       // Load categories from API
-      api.get('categories').then(response => {
-        setCategories(response.data);
-      });
+      const response = await api.get('categories');
+      setCategories(response.data);
     }
 
     loadCategories();
   }, []);
 
-  const handleSelectCategory = useCallback((id: number) => {
-    // Select / deselect category
-    setSelectedCategory(id);
+  const handleSelectCategory = useCallback(
+    async (id: number) => {
+      // Select / deselect category
+      const response = await api.get('foods');
 
-    api.get('foods').then(response => {
-      response.data.filter((food: Food) => food.category === id);
-    });
-  }, []);
+      let foodList: Food[];
+      if (selectedCategory !== id) {
+        setSelectedCategory(id);
+        foodList = response.data.filter((food: Food) => food.category === id);
+      } else {
+        setSelectedCategory(undefined);
+        foodList = response.data;
+      }
+
+      const formattedFoods: Food[] = foodList.map((item: Food) => ({
+        ...item,
+        formattedPrice: formatValue(item.price),
+      }));
+      setFoods(formattedFoods);
+    },
+    [selectedCategory],
+  );
 
   return (
     <Container>
