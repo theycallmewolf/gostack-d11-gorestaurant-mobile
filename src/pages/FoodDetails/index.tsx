@@ -151,7 +151,7 @@ const FoodDetails: React.FC = () => {
     // if (foodQuantity !== 0) {
     //   setFoodQuantity(foodQuantity - 1);
     // }
-    if (foodQuantity === 0) return;
+    if (foodQuantity === 1) return;
     setFoodQuantity(foodQuantity - 1);
   }
 
